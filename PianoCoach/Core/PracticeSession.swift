@@ -30,7 +30,7 @@ final class PracticeSession: ObservableObject {
     // 状态
     @Published private(set) var phase: Phase = .idle
     @Published private(set) var results: [Int: NoteResult] = [:]   // key = ScoreNote.id
-    /// 当前待弹音符在 activeNotes 中的下标，-1 表示未开始
+    /// 当前待弹的一步在 activeSteps 中的下标，-1 表示未开始
     @Published private(set) var currentIndex: Int = -1
     @Published private(set) var liveNote: String = "—"
     @Published private(set) var level: Float = 0
@@ -40,21 +40,24 @@ final class PracticeSession: ObservableObject {
 
     private let io = AudioIO()
     private var tracker: NoteTracker?
-    private var activeNotes: [ScoreNote] = []
+    /// 按起音时刻分好的步骤；和弦是一步，弹对其中任意一个音就算对
+    /// （目前的检测是单音的，听不出完整和弦）
+    private var activeSteps: [[ScoreNote]] = []
+    private var activeNotes: [ScoreNote] { activeSteps.flatMap { $0 } }
     private var lastVoicedTime = -1e9
     /// 弹完一个音后等待静音，防止余音触发下一个识别
     private var waitingForSilence = false
     private var silenceFrameCount = 0
     private let silenceFramesRequired = 6   // ≈ 0.13 秒静音
-    /// 当前音符已经记录过错误（防止重复写入）
+    /// 当前这一步已经记录过错误（防止重复写入）
     private var currentNoteErrorRecorded = false
 
     var activeHandNotes: [ScoreNote] { score.notes(for: hand) }
 
-    /// 当前待弹的音符
-    var currentNote: ScoreNote? {
-        guard currentIndex >= 0, currentIndex < activeNotes.count else { return nil }
-        return activeNotes[currentIndex]
+    /// 当前待弹的一步（单音或和弦）
+    var currentStep: [ScoreNote] {
+        guard currentIndex >= 0, currentIndex < activeSteps.count else { return [] }
+        return activeSteps[currentIndex]
     }
 
     init() {
@@ -110,8 +113,8 @@ final class PracticeSession: ObservableObject {
             return
         }
 
-        activeNotes = activeHandNotes
-        guard !activeNotes.isEmpty else { io.stop(); return }
+        activeSteps = score.steps(for: hand)
+        guard !activeSteps.isEmpty else { io.stop(); return }
 
         tracker = NoteTracker(sampleRate: io.sampleRate)
         lastVoicedTime = -1e9
@@ -165,40 +168,46 @@ final class PracticeSession: ObservableObject {
         }
     }
 
-    /// 将弹奏事件与当前待弹音符比较：
-    /// - 弹对 → 标记正确，前进到下一个音符
-    /// - 弹错 → 记录一次错误（之后再弹错不重复记录），停在当前音符等待弹对
+    /// 将弹奏事件与当前这一步比较：
+    /// - 弹对 → 标记正确，前进到下一步
+    /// - 弹错 → 记录一次错误（之后再弹错不重复记录），停在当前这一步等待弹对
     private func handleEvent(_ ev: NoteEvent) {
         guard let played = ev.midi else { return }
-        guard currentIndex < activeNotes.count else { return }
+        guard currentIndex >= 0, currentIndex < activeSteps.count else { return }
 
-        let note = activeNotes[currentIndex]
+        let step = activeSteps[currentIndex]
 
-        if played == note.midi {
+        if step.contains(where: { $0.midi == played }) {
             // 弹对了：若之前已记录错误则保留 .wrong，否则标记 .correct
-            if results[note.id]?.state != .wrong {
+            for note in step where results[note.id]?.state != .wrong {
                 var result = NoteResult()
                 result.playedMidi = played
                 result.state = .correct
                 results[note.id] = result
             }
-            // 前进到下一个音符
+            // 前进到下一步
             currentNoteErrorRecorded = false
             let next = currentIndex + 1
-            if next >= activeNotes.count {
+            if next >= activeSteps.count {
                 finish(aborted: false)
             } else {
                 currentIndex = next
             }
         } else {
-            // 弹错了：只在第一次记录错误，之后停在此音符继续等
+            // 弹错了：只在第一次记录错误，之后停在这一步继续等
             if !currentNoteErrorRecorded {
-                var result = NoteResult()
-                result.playedMidi = played
-                result.state = .wrong
-                let diff = played - note.midi
-                result.detail = diff % 12 == 0 ? "八度不对" : (diff > 0 ? "偏高" : "偏低")
-                results[note.id] = result
+                // 和弦里离弹出的音最近的那个音
+                let target = step.min { abs($0.midi - played) < abs($1.midi - played) } ?? step[0]
+                let diff = played - target.midi
+                for note in step {
+                    var result = NoteResult()
+                    result.playedMidi = played
+                    result.state = .wrong
+                    if note.id == target.id {
+                        result.detail = diff % 12 == 0 ? "八度不对" : (diff > 0 ? "偏高" : "偏低")
+                    }
+                    results[note.id] = result
+                }
                 currentNoteErrorRecorded = true
             }
             // 不前进，等用户重新弹
@@ -230,7 +239,7 @@ final class PracticeSession: ObservableObject {
             case .timing:           correct += 1
             }
             if r.state == .wrong || r.state == .missed || r.state == .pending {
-                badPerBar[Int(note.beat / Double(score.beatsPerBar)) + 1, default: 0] += 1
+                badPerBar[score.barIndex(at: note.beat) + 1, default: 0] += 1
             }
         }
         let worst = badPerBar.values.max() ?? 0

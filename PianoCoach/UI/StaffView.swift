@@ -6,8 +6,8 @@ struct StaffView: View {
     let score: Score
     let activeHand: Hand
     let results: [Int: NoteResult]
-    /// 当前待弹音符的 ScoreNote.id，nil 表示未开始或已结束
-    let currentNoteID: Int?
+    /// 当前待弹音符（单音或和弦）的 ScoreNote.id，空表示未开始或已结束
+    let currentNoteIDs: Set<Int>
 
     static let barsPerSystem = 2
     static let systemHeight: CGFloat = 235
@@ -36,21 +36,21 @@ struct StaffView: View {
     }
 
     private func x(forBeat beat: Double, width: CGFloat) -> CGFloat {
-        let bar = Int(floor(beat / Double(score.beatsPerBar)))
-        let beatInBar = beat - Double(bar) * Double(score.beatsPerBar)
+        let bar = score.barIndex(at: beat)
+        let beatInBar = beat - score.barStarts[bar]
         let barInSystem = bar % Self.barsPerSystem
         let bw = barWidth(width)
         let left = leftMargin + CGFloat(barInSystem) * bw
-        return left + barPadding + CGFloat(beatInBar / Double(score.beatsPerBar)) * (bw - 2 * barPadding)
+        return left + barPadding + CGFloat(beatInBar / score.barLength(bar)) * (bw - 2 * barPadding)
     }
 
     private func system(forBeat beat: Double) -> Int {
-        Int(floor(beat / Double(score.beatsPerBar))) / Self.barsPerSystem
+        score.barIndex(at: beat) / Self.barsPerSystem
     }
 
     private func color(for note: ScoreNote) -> Color {
         guard note.hand == activeHand else { return Color.gray.opacity(0.35) }
-        if currentNoteID == note.id { return Color.accentColor }  // 当前待弹：蓝色
+        if currentNoteIDs.contains(note.id) { return Color.accentColor }  // 当前待弹：蓝色
         switch results[note.id]?.state ?? .pending {
         case .pending: return Color.primary
         case .correct: return Color.green
@@ -133,14 +133,14 @@ struct StaffView: View {
                           staffTop: CGFloat, color: Color, detail: String?) {
         let bottomLineY = staffTop + 4 * s
         let bottomDiatonic = note.hand == .right ? StaffPosition.trebleBottom : StaffPosition.bassBottom
-        let pos = StaffPosition.make(midi: note.midi)
+        let pos = StaffPosition.make(midi: note.midi, preferFlats: score.keyFifths < 0)
         let y = bottomLineY - CGFloat(pos.diatonic - bottomDiatonic) * s / 2
         let headW = s * 1.3
         let headH = s * 0.95
         let ledgerColor = Color.primary.opacity(0.55)
 
         // 当前待弹音符：高亮背景圆
-        if currentNoteID == note.id {
+        if currentNoteIDs.contains(note.id) {
             let r = headW * 1.6
             ctx.fill(Path(ellipseIn: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2)),
                      with: .color(Color.accentColor.opacity(0.18)))
@@ -162,9 +162,9 @@ struct StaffView: View {
             ly += s
         }
 
-        // 升号
-        if pos.sharp {
-            ctx.draw(Text("♯").font(.system(size: 14)).foregroundColor(color),
+        // 变音记号
+        if let accidental = pos.accidental {
+            ctx.draw(Text(accidental).font(.system(size: 14)).foregroundColor(color),
                      at: CGPoint(x: x - headW - 6, y: y), anchor: .center)
         }
 
