@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		C4A1B2000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A3F352543085BF7B00426AFA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A3F3525B3085BF7B00426AFA;
+			remoteInfo = PianoCoach;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		A3F3525C3085BF7B00426AFA /* PianoCoach.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PianoCoach.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C4A1B2000000000000000002 /* PianoCoachTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PianoCoachTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = PianoCoach;
 			sourceTree = "<group>";
 		};
+		C4A1B2000000000000000003 /* PianoCoachTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PianoCoachTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A3F352593085BF7B00426AFA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4A1B2000000000000000004 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				A3F3525E3085BF7B00426AFA /* PianoCoach */,
+				C4A1B2000000000000000003 /* PianoCoachTests */,
 				A3F3525D3085BF7B00426AFA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				A3F3525C3085BF7B00426AFA /* PianoCoach.app */,
+				C4A1B2000000000000000002 /* PianoCoachTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 			productReference = A3F3525C3085BF7B00426AFA /* PianoCoach.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C4A1B2000000000000000007 /* PianoCoachTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C4A1B200000000000000000B /* Build configuration list for PBXNativeTarget "PianoCoachTests" */;
+			buildPhases = (
+				C4A1B2000000000000000006 /* Sources */,
+				C4A1B2000000000000000004 /* Frameworks */,
+				C4A1B2000000000000000005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C4A1B2000000000000000008 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C4A1B2000000000000000003 /* PianoCoachTests */,
+			);
+			name = PianoCoachTests;
+			packageProductDependencies = (
+			);
+			productName = PianoCoachTests;
+			productReference = C4A1B2000000000000000002 /* PianoCoachTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +130,10 @@
 				TargetAttributes = {
 					A3F3525B3085BF7B00426AFA = {
 						CreatedOnToolsVersion = 26.5;
+					};
+					C4A1B2000000000000000007 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = A3F3525B3085BF7B00426AFA;
 					};
 				};
 			};
@@ -100,12 +152,20 @@
 			projectRoot = "";
 			targets = (
 				A3F3525B3085BF7B00426AFA /* PianoCoach */,
+				C4A1B2000000000000000007 /* PianoCoachTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A3F3525A3085BF7B00426AFA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4A1B2000000000000000005 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +182,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C4A1B2000000000000000006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C4A1B2000000000000000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A3F3525B3085BF7B00426AFA /* PianoCoach */;
+			targetProxy = C4A1B2000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A3F352653085BF7D00426AFA /* Debug */ = {
@@ -314,6 +389,52 @@
 			};
 			name = Release;
 		};
+		C4A1B2000000000000000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 29T98DJ7AK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = nz.Darren.PianoCoachTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PianoCoach.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PianoCoach";
+			};
+			name = Debug;
+		};
+		C4A1B200000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 29T98DJ7AK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = nz.Darren.PianoCoachTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PianoCoach.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PianoCoach";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -331,6 +452,15 @@
 			buildConfigurations = (
 				A3F352683085BF7D00426AFA /* Debug */,
 				A3F352693085BF7D00426AFA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C4A1B200000000000000000B /* Build configuration list for PBXNativeTarget "PianoCoachTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C4A1B2000000000000000009 /* Debug */,
+				C4A1B200000000000000000A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
