@@ -45,10 +45,8 @@ final class PracticeSession: ObservableObject {
     private var activeSteps: [[ScoreNote]] = []
     private var activeNotes: [ScoreNote] { activeSteps.flatMap { $0 } }
     private var lastVoicedTime = -1e9
-    /// 弹完一个音后等待静音，防止余音触发下一个识别
-    private var waitingForSilence = false
-    private var silenceFrameCount = 0
-    private let silenceFramesRequired = 6   // ≈ 0.13 秒静音
+    /// 弹过的音还在响时，防止它的余音被当成下一个音符
+    private var echoFilter = EchoFilter()
     /// 当前这一步已经记录过错误（防止重复写入）
     private var currentNoteErrorRecorded = false
 
@@ -118,8 +116,7 @@ final class PracticeSession: ObservableObject {
 
         tracker = NoteTracker(sampleRate: io.sampleRate)
         lastVoicedTime = -1e9
-        waitingForSilence = false
-        silenceFrameCount = 0
+        echoFilter.reset()
         currentIndex = 0
         currentNoteErrorRecorded = false
         phase = .playing
@@ -132,6 +129,8 @@ final class PracticeSession: ObservableObject {
         guard phase == .playing, let tracker = tracker else { return }
 
         for fr in frames {
+            guard phase == .playing else { return }
+
             // 音量表 & 实时音名
             level = max(level * 0.85, min(1, fr.rms * 10))
             if let m = fr.midi {
@@ -142,27 +141,13 @@ final class PracticeSession: ObservableObject {
                 level = max(0, level * 0.92)
             }
 
-            // 等待静音：识别完一个音后，必须等声音平息才处理下一个
-            if waitingForSilence {
-                if fr.rms < 0.008 {
-                    silenceFrameCount += 1
-                    if silenceFrameCount >= silenceFramesRequired {
-                        waitingForSilence = false
-                        silenceFrameCount = 0
-                        tracker.reset()
-                    }
-                } else {
-                    silenceFrameCount = 0
-                }
-                continue
-            }
-
-            // 正常处理，每次只取第一个有效事件
+            // 追踪器每一帧都要喂，这样余音还在响的时候也能听到下一个键被按下
+            echoFilter.observe(fr)
             for ev in tracker.process(fr) {
-                guard ev.midi != nil else { continue }
+                let expected = currentStep.map(\.midi)
+                guard echoFilter.allows(ev, expected: expected) else { continue }
+                echoFilter.accept(ev)
                 handleEvent(ev)
-                waitingForSilence = true
-                silenceFrameCount = 0
                 break
             }
         }
