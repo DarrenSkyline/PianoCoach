@@ -4,6 +4,8 @@ import Foundation
 struct NoteEvent {
     let start: Double   // 起音时刻（秒，采集时钟）
     let midi: Int?      // 多数投票得到的音高；没有稳定音高则 nil
+    /// true = 由能量突然上升（按下新键）触发；false = 只是音高变了（可能是余音里冒出来的）
+    let isAttack: Bool
 }
 
 /// 把逐帧结果变成"弹了一个音"的事件。
@@ -24,6 +26,7 @@ final class NoteTracker {
     private struct Pending {
         var start: Double
         var votes: [Int]
+        var isAttack: Bool
     }
 
     private let cfg: Config
@@ -80,7 +83,7 @@ final class NoteTracker {
         if isOnset {
             if pending != nil { out.append(finish()) }
             lastOnset = fr.time
-            pending = Pending(start: fr.time - halfHop, votes: [])
+            pending = Pending(start: fr.time - halfHop, votes: [], isAttack: true)
             runMidi = nil
             runCount = 0
             return out
@@ -91,7 +94,7 @@ final class NoteTracker {
             if pending != nil { out.append(finish()) }
             lastOnset = fr.time
             pending = Pending(start: runFirstTime - cfg.pitchOnsetLag,
-                              votes: Array(repeating: rm, count: runCount))
+                              votes: Array(repeating: rm, count: runCount), isAttack: false)
             runMidi = nil
             runCount = 0
             return out
@@ -117,6 +120,6 @@ final class NoteTracker {
             midi = counts.max { $0.value < $1.value }?.key
         }
         if let m = midi { sounding = m }
-        return NoteEvent(start: p.start, midi: midi)
+        return NoteEvent(start: p.start, midi: midi, isAttack: p.isAttack)
     }
 }
